@@ -8,8 +8,8 @@ Gem::Specification.new do |s|
   s.authors     = ["Simon Menke"]
   s.email       = ["simon.menke@gmail.com"]
   s.homepage    = ""
-  s.summary     = %q{TODO: Write a gem summary}
-  s.description = %q{TODO: Write a gem description}
+  s.summary     = %q{[ALICE] capistrano extention for alice}
+  s.description = %q{This makes deploying apps to alice/pluto much easier.}
 
   s.rubyforge_project = "capistrano-alice"
 
@@ -20,5 +20,5 @@ Gem::Specification.new do |s|
 
   # specify any dependencies here; for example:
   # s.add_development_dependency "rspec"
-  # s.add_runtime_dependency "rest-client"
+  s.add_runtime_dependency "yajl-ruby"
 end
