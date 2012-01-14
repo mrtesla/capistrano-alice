@@ -88,6 +88,10 @@ Capistrano::Configuration.instance(:must_exist).load do
         if alice_release.environment['RUBY_VERSION']
           set :rvm_ruby_string, alice_release.environment['RUBY_VERSION']
         end
+
+        if alice_release.environment['RAILS_ENV']
+          set :rails_env, alice_release.environment['RAILS_ENV']
+        end
       end
 
       task :destroy, :except => { :no_release => true } do
