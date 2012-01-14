@@ -87,6 +87,7 @@ Capistrano::Configuration.instance(:must_exist).load do
 
         if alice_release.environment['RUBY_VERSION']
           set :rvm_ruby_string, alice_release.environment['RUBY_VERSION']
+          reset!(:default_shell)
         end
 
         if alice_release.environment['RAILS_ENV']
