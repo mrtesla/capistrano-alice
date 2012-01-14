@@ -29,8 +29,9 @@ class Capistrano::Alice::Release
       response = http.request(request)
       if Net::HTTPSuccess === response
         response = Yajl::Parser.parse(response.body)
-        @id     = response['release']['id']
-        @number = response['release']['number']
+        @id          = response['release']['id']
+        @number      = response['release']['number']
+        @environment = response['release']['environment']
       else
         raise "Failed to create release!"
       end
@@ -80,6 +81,12 @@ Capistrano::Configuration.instance(:must_exist).load do
           alice_release.create!
         rescue RuntimeError => e
           abort e.message
+        end
+
+        default_environment.merge! alice_release.environment
+
+        if alice_release.environment['RUBY_VERSION']
+          set :rvm_ruby_string, alice_release.environment['RUBY_VERSION']
         end
       end
 
