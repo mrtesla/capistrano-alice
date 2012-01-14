@@ -2,12 +2,14 @@ class Capistrano::Alice::Release
   attr_accessor :servers
   attr_accessor :processes
   attr_accessor :path_rules
+  attr_accessor :environment
 
   attr_accessor :id
   attr_accessor :number
 
   def initialize(config)
-    @config = config
+    @config      = config
+    @environment = {}
   end
 
   def create!
@@ -15,7 +17,8 @@ class Capistrano::Alice::Release
       "application" => @config.application,
       "machines"    => @servers,
       "processes"   => @processes,
-      "path_rules"  => (@path_rules || {}).to_a
+      "path_rules"  => (@path_rules || {}).to_a,
+      "environment" => @environment
     }
 
     Net::HTTP.start(@config.alice_host, @config.alice_port) do |http|
@@ -67,6 +70,9 @@ Capistrano::Configuration.instance(:must_exist).load do
         find_and_execute_task("alice:release:_create:collect_servers")
         find_and_execute_task("alice:release:_create:collect_processes")
         find_and_execute_task("alice:release:_create:collect_path_rules")
+        find_and_execute_task("alice:release:_create:collect_environment_variables")
+        find_and_execute_task("alice:release:_create:detect_ruby_version")
+        find_and_execute_task("alice:release:_create:detect_node_version")
 
         on_rollback { find_and_execute_task("alice:release:destroy") }
 
@@ -162,6 +168,63 @@ Capistrano::Configuration.instance(:must_exist).load do
           path_rules.merge! fetch(:alice_path_rules, {})
 
           alice_release.path_rules = path_rules
+        end
+
+        task :collect_environment_variables, :except => { :no_release => true } do
+          env = {}
+
+          if File.file?('.envrc')
+            File.read('.envrc').split("\n").each do |line|
+              line = line.split('#', 2).first.strip
+              case line
+              when /^export\s+([a-zA-Z0-9_]+)[=](.+)$/
+                env[$1] = $2
+
+              when /^unset\s+([a-zA-Z0-9_]+)$/
+                env[$1] = nil
+
+              end
+            end
+          end
+
+          env.merge! fetch(:alice_environment, {})
+
+          alice_release.environment.merge! env
+        end
+
+        task :detect_ruby_version, :except => { :no_release => true } do
+          ruby_version = fetch(:ruby_version, nil)
+
+          if !ruby_version and File.file?('.rvmrc')
+            File.read('.rvmrc').split("\n").each do |line|
+              line = line.split('#', 2).first.strip
+              next unless /^rvm\s+(.+)$/ =~ line
+              line = $1
+              if /^use\s+(.+)$/ =~ line then line = $1 end
+              line = line.split('@', 2).first
+              next unless /^[a-z0-9_.-]+$/ =~ line
+              ruby_version = line
+            end
+          end
+
+          alice_release.environment['RUBY_VERSION'] = ruby_version
+        end
+
+        task :detect_node_version, :except => { :no_release => true } do
+          node_version = fetch(:node_version, nil)
+
+          if !node_version and File.file?('.nvmrc')
+            File.read('.nvmrc').split("\n").each do |line|
+              line = line.split('#', 2).first.strip
+              next unless /^nvm\s+(.+)$/ =~ line
+              line = $1
+              if /^use\s+(.+)$/ =~ line then line = $1 end
+              next unless /^v?([a-z0-9_.-]+)$/ =~ line
+              node_version = line
+            end
+          end
+
+          alice_release.environment['NODE_VERSION'] = node_version
         end
 
       end
