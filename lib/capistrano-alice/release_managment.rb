@@ -70,7 +70,11 @@ Capistrano::Configuration.instance(:must_exist).load do
 
         on_rollback { find_and_execute_task("alice:release:destroy") }
 
-        alice_release.create!
+        begin
+          alice_release.create!
+        rescue RuntimeError => e
+          abort e.message
+        end
       end
 
       task :destroy, :except => { :no_release => true } do
@@ -141,12 +145,12 @@ Capistrano::Configuration.instance(:must_exist).load do
             Dir.entries('public').each do |path|
               next if path[0,1] == '.'
 
-              if File.directory?(path)
+              if File.directory?(File.join('public',path))
                 path_rules[File.join('', path, '*')] = [
                   ["cache-control", "public,max-age=600"],
                   ["forward", "static"]
                 ]
-              elsif File.file?(path)
+              elsif File.file?(File.join('public',path))
                 path_rules[File.join('', path)] = [
                   ["cache-control", "public,max-age=600"],
                   ["forward", "static"]
