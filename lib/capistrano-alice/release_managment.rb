@@ -199,12 +199,12 @@ Capistrano::Configuration.instance(:must_exist).load do
             end
           end
 
-          if rails_env = fetch(:rails_env, 'production')
+          if rails_env = fetch(:rails_env, nil)
             env['RAILS_ENV'] = rails_env
             env['RACK_ENV']  = rails_env
           end
 
-          if node_env = fetch(:node_env, 'production')
+          if node_env = fetch(:node_env, nil)
             env['NODE_ENV'] = node_env
           end
 
