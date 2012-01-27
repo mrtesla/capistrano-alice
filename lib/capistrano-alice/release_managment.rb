@@ -199,6 +199,15 @@ Capistrano::Configuration.instance(:must_exist).load do
             end
           end
 
+          if rails_env = fetch(:rails_env, 'production')
+            env['RAILS_ENV'] = rails_env
+            env['RACK_ENV']  = rails_env
+          end
+
+          if node_env = fetch(:node_env, 'production')
+            env['NODE_ENV'] = node_env
+          end
+
           env.merge! fetch(:alice_environment, {})
 
           alice_release.environment.merge! env
