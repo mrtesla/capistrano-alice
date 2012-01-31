@@ -3,6 +3,8 @@ class Capistrano::Alice::Release
   attr_accessor :processes
   attr_accessor :path_rules
   attr_accessor :environment
+  attr_accessor :deploy_reference
+  attr_accessor :repository_reference
 
   attr_accessor :id
   attr_accessor :number
@@ -14,11 +16,13 @@ class Capistrano::Alice::Release
 
   def create!
     body = {
-      "application" => @config.application,
-      "machines"    => @servers,
-      "processes"   => @processes,
-      "path_rules"  => (@path_rules || {}).to_a,
-      "environment" => @environment
+      "application"          => @config.application,
+      "machines"             => @servers,
+      "processes"            => @processes,
+      "path_rules"           => (@path_rules || {}).to_a,
+      "environment"          => @environment,
+      "deploy_reference"     => @deploy_reference,
+      "repository_reference" => @repository_reference
     }
 
     Net::HTTP.start(@config.alice_host, @config.alice_port) do |http|
@@ -74,6 +78,9 @@ Capistrano::Configuration.instance(:must_exist).load do
         find_and_execute_task("alice:release:_create:collect_environment_variables")
         find_and_execute_task("alice:release:_create:detect_ruby_version")
         find_and_execute_task("alice:release:_create:detect_node_version")
+
+        alice_release.deploy_reference     = fetch(:release_name,  nil)
+        alice_release.repository_reference = fetch(:real_revision, nil)
 
         on_rollback { find_and_execute_task("alice:release:destroy") }
 
