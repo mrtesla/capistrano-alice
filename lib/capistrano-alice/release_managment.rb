@@ -97,6 +97,11 @@ Capistrano::Configuration.instance(:must_exist).load do
           reset!(:default_shell)
 
           if fetch(:alice_env, false)
+            version = {
+              '1.8.7' => '1.8.7-p357',
+              '1.9.2' => '1.9.2-p290',
+              '1.9.3' => '1.9.3-p125'
+            }[version] || version
             path = default_environment['PATH'] || '$PATH'
             path = [File.join(fetch(:alice_prefix, '/var/alice'), 'env', 'ruby', version, 'bin'), path].join(':')
             default_environment['PATH'] = path
