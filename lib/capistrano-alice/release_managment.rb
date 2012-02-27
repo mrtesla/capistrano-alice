@@ -92,9 +92,15 @@ Capistrano::Configuration.instance(:must_exist).load do
 
         default_environment.merge! alice_release.environment
 
-        if alice_release.environment['RUBY_VERSION']
-          set :rvm_ruby_string, alice_release.environment['RUBY_VERSION']
+        if version = alice_release.environment['RUBY_VERSION']
+          set :rvm_ruby_string, version
           reset!(:default_shell)
+
+          if fetch(:alice_env, false)
+            path = default_environment['PATH'] || '$PATH'
+            path = [File.join(fetch(:alice_prefix, '/var/alice'), 'env', 'ruby', version, 'bin'), path].join(':')
+            default_environment['PATH'] = path
+          end
         end
 
         if alice_release.environment['RAILS_ENV']
