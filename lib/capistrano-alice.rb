@@ -33,6 +33,7 @@ Capistrano::Configuration.instance(:must_exist).load do
 
   before "deploy:update_code", "alice:maintenance:on"
   before "deploy:update_code", "alice:release:create"
+  after  "deploy:update_code", "alice:release:procfile"
   after  "deploy:restart",     "alice:release:activate"
   after  "deploy:restart",     "alice:maintenance:off"
 end

@@ -122,6 +122,14 @@ Capistrano::Configuration.instance(:must_exist).load do
         alice_release.activate!
       end
 
+      task :procfile, :except => { :no_release => true } do
+        procfile = alice_release.processes.map do |name, command|
+          "#{name}: #{command}"
+        end.join("\n")
+
+        put(procfile, "#{current_release}/Procfile", mode: 0644)
+      end
+
       namespace :_create do
 
         task :collect_servers, :except => { :no_release => true } do
@@ -144,6 +152,8 @@ Capistrano::Configuration.instance(:must_exist).load do
 
             processes[name] = command
           end
+
+          processes.merge! fetch(:alice_processes, {})
 
           if processes.empty?
             abort "[ALICE]: Empty or invalid Procfile!"
