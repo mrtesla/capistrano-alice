@@ -127,7 +127,7 @@ Capistrano::Configuration.instance(:must_exist).load do
           "#{name}: #{command}"
         end.join("\n")
 
-        put(procfile, "#{current_release}/Procfile", mode: 0644)
+        put(procfile, "#{current_release}/Procfile", :mode => 0644)
       end
 
       namespace :_create do
@@ -153,7 +153,7 @@ Capistrano::Configuration.instance(:must_exist).load do
             processes[name] = command
           end
 
-          processes.merge! fetch(:alice_processes, {})
+          processes = fetch(:alice_processes, {}).merge(processes)
 
           if processes.empty?
             abort "[ALICE]: Empty or invalid Procfile!"
